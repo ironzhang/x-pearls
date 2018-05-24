@@ -120,7 +120,7 @@ func TestLogger(t *testing.T) {
 	var enable bool
 	enable = true
 	if enable {
-		l := NewZLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile), DEBUG, 2)
+		l := NewZLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile), DEBUG, 0)
 
 		l.SetLevel(DEBUG)
 		PrintTestLogs("debug level", l)

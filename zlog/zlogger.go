@@ -57,7 +57,7 @@ func NewZLogger(logger *log.Logger, level Level, calldepth int) *ZLogger {
 	return &ZLogger{
 		logger:    logger,
 		level:     level,
-		calldepth: calldepth,
+		calldepth: calldepth + 2,
 	}
 }
 

@@ -39,7 +39,7 @@ var Default *ZLogger
 var logging Logger
 
 func init() {
-	Default = NewZLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile), INFO, 3)
+	Default = NewZLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile), INFO, 1)
 	logging = Default
 }
 
