@@ -1,11 +1,10 @@
-package config_test
+package tomlcfg_test
 
 import (
 	"os"
 	"reflect"
 	"testing"
 
-	"github.com/ironzhang/x-pearls/config"
 	"github.com/ironzhang/x-pearls/config/tomlcfg"
 )
 
@@ -71,43 +70,18 @@ var example = Config{
 	},
 }
 
-func TestJSONConfig(t *testing.T) {
-	filename := "test.json"
+func TestTOMLConfig(t *testing.T) {
+	filename := "test.cfg"
 	got, want := Config{}, example
-	if err := config.JSON.WriteToFile(filename, want); err != nil {
+	if err := tomlcfg.TOML.WriteToFile(filename, want); err != nil {
 		t.Fatalf("write to file: %v", err)
 	}
 	defer os.Remove(filename)
-	if err := config.JSON.LoadFromFile(filename, &got); err != nil {
+	if err := tomlcfg.TOML.LoadFromFile(filename, &got); err != nil {
 		t.Fatalf("load from file: %v", err)
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("%+v != %+v", got, want)
 	}
 	t.Logf("got: %+v", got)
-}
-
-func TestConfig(t *testing.T) {
-	tests := []struct {
-		filename  string
-		defaultLW config.LoadWriter
-	}{
-		{"test.config.json", config.JSON},
-		{"test.config.conf", tomlcfg.TOML},
-	}
-	for _, tt := range tests {
-		got, want := Config{}, example
-		config.Default = tt.defaultLW
-		if err := config.WriteToFile(tt.filename, want); err != nil {
-			t.Fatalf("%s: write to file: %v", tt.filename, err)
-		}
-		defer os.Remove(tt.filename)
-		if err := config.LoadFromFile(tt.filename, &got); err != nil {
-			t.Fatalf("%s: load from file: %v", tt.filename, err)
-		}
-		if !reflect.DeepEqual(got, want) {
-			t.Errorf("%+v != %+v", got, want)
-		}
-		t.Logf("%s: %+v", tt.filename, got)
-	}
 }

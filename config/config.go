@@ -3,9 +3,6 @@ package config
 import (
 	"encoding/json"
 	"io/ioutil"
-	"os"
-
-	"github.com/BurntSushi/toml"
 )
 
 type LoadWriter interface {
@@ -37,28 +34,8 @@ func (jsoncfg) WriteToFile(filename string, cfg interface{}) error {
 	return nil
 }
 
-type tomlcfg struct{}
-
-func (tomlcfg) LoadFromFile(filename string, cfg interface{}) error {
-	_, err := toml.DecodeFile(filename, cfg)
-	return err
-}
-
-func (tomlcfg) WriteToFile(filename string, cfg interface{}) error {
-	f, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	enc := toml.NewEncoder(f)
-	enc.Indent = "\t"
-	return enc.Encode(cfg)
-}
-
 var (
 	JSON    jsoncfg
-	TOML    tomlcfg
 	Default LoadWriter = JSON
 )
 
