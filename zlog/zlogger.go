@@ -8,6 +8,12 @@ import (
 	"os"
 )
 
+var ExitFunc = os.Exit
+
+var PanicFunc = func(v interface{}) {
+	panic(v)
+}
+
 type Level int
 
 const (
@@ -161,42 +167,42 @@ func (p *ZLogger) Panic(args ...interface{}) {
 	if p.level <= PANIC {
 		p.logger.Output(p.calldepth, sprint(PANIC, args...))
 	}
-	panic(fmt.Sprint(args...))
+	PanicFunc(fmt.Sprint(args...))
 }
 
 func (p *ZLogger) Panicf(format string, args ...interface{}) {
 	if p.level <= PANIC {
 		p.logger.Output(p.calldepth, sprintf(PANIC, format, args...))
 	}
-	panic(fmt.Sprintf(format, args...))
+	PanicFunc(fmt.Sprintf(format, args...))
 }
 
 func (p *ZLogger) Panicw(message string, kvs ...interface{}) {
 	if p.level <= PANIC {
 		p.logger.Output(p.calldepth, sprintkvs(PANIC, message, kvs...))
 	}
-	panic(messagekvs(message, kvs))
+	PanicFunc(messagekvs(message, kvs))
 }
 
 func (p *ZLogger) Fatal(args ...interface{}) {
 	if p.level <= FATAL {
 		p.logger.Output(p.calldepth, sprint(FATAL, args...))
 	}
-	os.Exit(1)
+	ExitFunc(1)
 }
 
 func (p *ZLogger) Fatalf(format string, args ...interface{}) {
 	if p.level <= FATAL {
 		p.logger.Output(p.calldepth, sprintf(FATAL, format, args...))
 	}
-	os.Exit(1)
+	ExitFunc(1)
 }
 
 func (p *ZLogger) Fatalw(message string, kvs ...interface{}) {
 	if p.level <= FATAL {
 		p.logger.Output(p.calldepth, sprintkvs(FATAL, message, kvs...))
 	}
-	os.Exit(1)
+	ExitFunc(1)
 }
 
 func sprint(l Level, args ...interface{}) string {

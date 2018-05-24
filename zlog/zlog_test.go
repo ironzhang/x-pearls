@@ -4,8 +4,18 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ironzhang/zerone/zlog"
+	"github.com/ironzhang/x-pearls/zlog"
 )
+
+func init() {
+	zlog.PanicFunc = func(v interface{}) {
+		fmt.Printf("%v\n", v)
+	}
+
+	zlog.ExitFunc = func(code int) {
+		fmt.Printf("exit: %d\n", code)
+	}
+}
 
 func PrintTestZLogs(msg string) {
 	fmt.Println(msg)
@@ -30,13 +40,13 @@ func PrintTestZLogs(msg string) {
 	zlog.Errorf("errorf: %v, %v, %v", 1, "2", 3.0)
 	zlog.Errorw("errorw", "A", 1, "B", "2", "C", 3.0)
 
-	//	zlog.Panic("panic", 1, "2", 3.0)
-	//	zlog.Panicf("panicf: %v, %v, %v", 1, "2", 3.0)
-	//	zlog.Panicw("panicw", "A", 1, "B", "2", "C", 3.0)
+	zlog.Panic("panic", 1, "2", 3.0)
+	zlog.Panicf("panicf: %v, %v, %v", 1, "2", 3.0)
+	zlog.Panicw("panicw", "A", 1, "B", "2", "C", 3.0)
 
-	//	zlog.Fatal("fatal", 1, "2", 3.0)
-	//	zlog.Fatalf("fatalf: %v, %v, %v", 1, "2", 3.0)
-	//	zlog.Fatalw("fatalw", "A", 1, "B", "2", "C", 3.0)
+	zlog.Fatal("fatal", 1, "2", 3.0)
+	zlog.Fatalf("fatalf: %v, %v, %v", 1, "2", 3.0)
+	zlog.Fatalw("fatalw", "A", 1, "B", "2", "C", 3.0)
 }
 
 func TestZlog(t *testing.T) {

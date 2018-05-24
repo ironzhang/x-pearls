@@ -7,6 +7,16 @@ import (
 	"testing"
 )
 
+func init() {
+	PanicFunc = func(v interface{}) {
+		fmt.Printf("%v\n", v)
+	}
+
+	ExitFunc = func(code int) {
+		fmt.Printf("exit: %d\n", code)
+	}
+}
+
 func TestFmtkvs(t *testing.T) {
 	tests := []struct {
 		kvs []interface{}
@@ -97,13 +107,13 @@ func PrintTestLogs(msg string, l *ZLogger) {
 	l.Errorf("errorf: %v, %v, %v", 1, "2", 3.0)
 	l.Errorw("errorw", "x", 1, "y", 1.0)
 
-	//	l.Panic("panic", 1, "2", 3.0)
-	//	l.Panicf("panicf: %v, %v, %v", 1, "2", 3.0)
-	//	l.Panicw("panicw", "x", 1, "y", 1.0)
+	l.Panic("panic", 1, "2", 3.0)
+	l.Panicf("panicf: %v, %v, %v", 1, "2", 3.0)
+	l.Panicw("panicw", "x", 1, "y", 1.0)
 
-	//	l.Fatal("fatal", 1, "2", 3.0)
-	//	l.Fatalf("fatalf: %v, %v, %v", 1, "2", 3.0)
-	//	l.Fatalw("fatalw", "x", 1, "y", 1.0)
+	l.Fatal("fatal", 1, "2", 3.0)
+	l.Fatalf("fatalf: %v, %v, %v", 1, "2", 3.0)
+	l.Fatalw("fatalw", "x", 1, "y", 1.0)
 }
 
 func TestLogger(t *testing.T) {
