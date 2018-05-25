@@ -2,6 +2,7 @@ package govern
 
 import (
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -56,4 +57,34 @@ func Open(driver string, namespace string, config interface{}) (Driver, error) {
 		return nil, fmt.Errorf("driver(%s) not found", driver)
 	}
 	return open(namespace, config)
+}
+
+type Endpoints map[string]Endpoint
+
+func (m Endpoints) Add(p Endpoint) bool {
+	node := p.Node()
+	if ep, ok := m[node]; ok && ep.Equal(p) {
+		return false
+	}
+	m[node] = p
+	return true
+}
+
+func (m Endpoints) Remove(node string) bool {
+	if _, ok := m[node]; !ok {
+		return false
+	}
+	delete(m, node)
+	return true
+}
+
+func (m Endpoints) SortList() []Endpoint {
+	s := make([]Endpoint, 0, len(m))
+	for _, p := range m {
+		s = append(s, p)
+	}
+	sort.Slice(s, func(i, j int) bool {
+		return s[i].Node() < s[j].Node()
+	})
+	return s
 }
