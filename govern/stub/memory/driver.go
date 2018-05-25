@@ -1,6 +1,6 @@
-package stub
+package memory
 
-const DriverName = "stub"
+const DriverName = "memory"
 
 /*
 type provider struct {

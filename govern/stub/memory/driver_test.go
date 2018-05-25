@@ -1,4 +1,4 @@
-package stub
+package memory
 
 type Endpoint struct {
 	Name string

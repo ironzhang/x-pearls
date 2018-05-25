@@ -1,4 +1,4 @@
-package stub
+package memory
 
 import (
 	"sync"
@@ -12,6 +12,13 @@ type stub struct {
 	eps       []govern.Endpoint
 	smu       sync.Mutex
 	subs      map[string]govern.RefreshEndpointsFunc
+}
+
+func newStub() *stub {
+	return &stub{
+		endpoints: make(govern.Endpoints),
+		subs:      make(map[string]govern.RefreshEndpointsFunc),
+	}
 }
 
 func (p *stub) AddEndpoint(ep govern.Endpoint) {
@@ -50,7 +57,7 @@ func (p *stub) doRefresh(eps []govern.Endpoint) {
 	p.emu.Unlock()
 
 	p.smu.Lock()
-	subs := make([]govern.RefreshEndpointsFunc, len(p.subs))
+	subs := make([]govern.RefreshEndpointsFunc, 0, len(p.subs))
 	for _, s := range p.subs {
 		subs = append(subs, s)
 	}

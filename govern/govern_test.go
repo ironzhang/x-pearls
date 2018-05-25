@@ -5,40 +5,25 @@ import (
 	"testing"
 
 	"github.com/ironzhang/x-pearls/govern"
+	"github.com/ironzhang/x-pearls/govern/testutil"
 )
-
-type TestEndpoint struct {
-	Name string
-}
-
-func (p *TestEndpoint) Node() string {
-	return p.Name
-}
-
-func (p *TestEndpoint) String() string {
-	return p.Name
-}
-
-func (p *TestEndpoint) Equal(a interface{}) bool {
-	return *p == *a.(*TestEndpoint)
-}
 
 func TestEndpointsAdd(t *testing.T) {
 	m := govern.Endpoints{
-		"node0": &TestEndpoint{"node0"},
-		"node1": &TestEndpoint{"node1"},
-		"node2": &TestEndpoint{"node2"},
-		"node3": &TestEndpoint{"node3"},
+		"node0": &testutil.Endpoint{Name: "node0"},
+		"node1": &testutil.Endpoint{Name: "node1"},
+		"node2": &testutil.Endpoint{Name: "node2"},
+		"node3": &testutil.Endpoint{Name: "node3"},
 	}
 
 	tests := []struct {
-		ep   *TestEndpoint
+		ep   *testutil.Endpoint
 		want bool
 	}{
-		{ep: &TestEndpoint{"endpoint0"}, want: true},
-		{ep: &TestEndpoint{"endpoint1"}, want: true},
-		{ep: &TestEndpoint{"endpoint1"}, want: false},
-		{ep: &TestEndpoint{"node0"}, want: false},
+		{ep: &testutil.Endpoint{Name: "endpoint0"}, want: true},
+		{ep: &testutil.Endpoint{Name: "endpoint1"}, want: true},
+		{ep: &testutil.Endpoint{Name: "endpoint1"}, want: false},
+		{ep: &testutil.Endpoint{Name: "node0"}, want: false},
 	}
 	for i, tt := range tests {
 		if got, want := m.Add(tt.ep), tt.want; got != want {
@@ -49,12 +34,12 @@ func TestEndpointsAdd(t *testing.T) {
 	}
 
 	result := govern.Endpoints{
-		"node0":     &TestEndpoint{"node0"},
-		"node1":     &TestEndpoint{"node1"},
-		"node2":     &TestEndpoint{"node2"},
-		"node3":     &TestEndpoint{"node3"},
-		"endpoint0": &TestEndpoint{"endpoint0"},
-		"endpoint1": &TestEndpoint{"endpoint1"},
+		"node0":     &testutil.Endpoint{Name: "node0"},
+		"node1":     &testutil.Endpoint{Name: "node1"},
+		"node2":     &testutil.Endpoint{Name: "node2"},
+		"node3":     &testutil.Endpoint{Name: "node3"},
+		"endpoint0": &testutil.Endpoint{Name: "endpoint0"},
+		"endpoint1": &testutil.Endpoint{Name: "endpoint1"},
 	}
 	if got, want := m.SortList(), result.SortList(); !reflect.DeepEqual(got, want) {
 		t.Errorf("result: got %v, want %v", got, want)
