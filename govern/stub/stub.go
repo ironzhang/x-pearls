@@ -1,129 +1,62 @@
 package stub
 
 import (
-	"fmt"
-	"time"
+	"sync"
 
 	"github.com/ironzhang/x-pearls/govern"
 )
 
-const DriverName = "stub"
-
-type Provider struct {
-	dir  string
-	done chan struct{}
+type stub struct {
+	endpoints govern.Endpoints
+	emu       sync.RWMutex
+	eps       []govern.Endpoint
+	smu       sync.Mutex
+	subs      map[string]govern.RefreshEndpointsFunc
 }
 
-func NewProvider(dir string, interval time.Duration, f govern.GetEndpointFunc) *Provider {
-	if f == nil {
-		panic("govern.GetEndpointFunc is nil")
-	}
-
-	ch := make(chan struct{})
-	go func(done <-chan struct{}) {
-		t := time.NewTicker(interval)
-		defer t.Stop()
-
-		f()
-		for {
-			select {
-			case <-t.C:
-				f()
-			case <-done:
-				return
-			}
-		}
-	}(ch)
-
-	return &Provider{dir: dir, done: ch}
-}
-
-func (p *Provider) Driver() string {
-	return DriverName
-}
-
-func (p *Provider) Directory() string {
-	return p.dir
-}
-
-func (p *Provider) Close() error {
-	close(p.done)
-	return nil
-}
-
-type Consumer struct {
-	dir       string
-	endpoints []govern.Endpoint
-}
-
-func NewConsumer(dir string, endpoints []govern.Endpoint, refresh govern.RefreshEndpointsFunc) *Consumer {
-	if refresh != nil {
-		refresh(endpoints)
-	}
-	return &Consumer{
-		dir:       dir,
-		endpoints: endpoints,
+func (p *stub) AddEndpoint(ep govern.Endpoint) {
+	if p.endpoints.Add(ep) {
+		p.doRefresh(p.endpoints.SortList())
 	}
 }
 
-func (p *Consumer) Driver() string {
-	return DriverName
+func (p *stub) RemoveEndpoint(node string) {
+	if p.endpoints.Remove(node) {
+		p.doRefresh(p.endpoints.SortList())
+	}
 }
 
-func (p *Consumer) Directory() string {
-	return p.dir
+func (p *stub) AddSubscriber(token string, f govern.RefreshEndpointsFunc) {
+	p.smu.Lock()
+	p.subs[token] = f
+	p.smu.Unlock()
 }
 
-func (p *Consumer) Close() error {
-	return nil
+func (p *stub) RemoveSubscriber(token string) {
+	p.smu.Lock()
+	delete(p.subs, token)
+	p.smu.Unlock()
 }
 
-func (p *Consumer) GetEndpoints() []govern.Endpoint {
-	return p.endpoints
+func (p *stub) GetEndpoints() []govern.Endpoint {
+	p.emu.RLock()
+	defer p.emu.RUnlock()
+	return p.eps
 }
 
-type Driver struct {
-	namespace string
-	endpoints []govern.Endpoint
-}
+func (p *stub) doRefresh(eps []govern.Endpoint) {
+	p.emu.Lock()
+	p.eps = eps
+	p.emu.Unlock()
 
-func NewDriver(namespace string, endpoints []govern.Endpoint) *Driver {
-	return &Driver{namespace: namespace, endpoints: endpoints}
-}
+	p.smu.Lock()
+	subs := make([]govern.RefreshEndpointsFunc, len(p.subs))
+	for _, s := range p.subs {
+		subs = append(subs, s)
+	}
+	p.smu.Unlock()
 
-func (p *Driver) Name() string {
-	return DriverName
-}
-
-func (p *Driver) Namespace() string {
-	return p.namespace
-}
-
-func (p *Driver) NewProvider(service string, interval time.Duration, f govern.GetEndpointFunc) govern.Provider {
-	return NewProvider(p.dir(service), interval, f)
-}
-
-func (p *Driver) NewConsumer(service string, endpoint govern.Endpoint, f govern.RefreshEndpointsFunc) govern.Consumer {
-	return NewConsumer(p.dir(service), p.endpoints, f)
-}
-
-func (p *Driver) Close() error {
-	return nil
-}
-
-func (p *Driver) dir(service string) string {
-	return fmt.Sprintf("/%s/%s", p.namespace, service)
-}
-
-type Config struct {
-	Endpoints []govern.Endpoint
-}
-
-func Open(namespace string, config interface{}) (govern.Driver, error) {
-	c := config.(Config)
-	return NewDriver(namespace, c.Endpoints), nil
-}
-
-func init() {
-	govern.Register(DriverName, Open)
+	for _, f := range subs {
+		f(eps)
+	}
 }
