@@ -1,14 +1,23 @@
 package memory
 
+import (
+	"fmt"
+	"math/rand"
+	"sync"
+	"time"
+
+	"github.com/ironzhang/x-pearls/govern"
+)
+
 const DriverName = "memory"
 
-/*
 type provider struct {
+	stub *stub
 	dir  string
-	done chan struct{}
+	done chan<- struct{}
 }
 
-func newProvider(dir string, interval time.Duration, f govern.GetEndpointFunc) *provider {
+func newProvider(stub *stub, dir string, interval time.Duration, f govern.GetEndpointFunc) *provider {
 	if f == nil {
 		panic("govern.GetEndpointFunc is nil")
 	}
@@ -18,18 +27,19 @@ func newProvider(dir string, interval time.Duration, f govern.GetEndpointFunc) *
 		t := time.NewTicker(interval)
 		defer t.Stop()
 
-		f()
+		stub.AddEndpoint(f())
 		for {
 			select {
 			case <-t.C:
-				f()
+				stub.AddEndpoint(f())
 			case <-done:
+				stub.RemoveEndpoint(f().Node())
 				return
 			}
 		}
 	}(ch)
 
-	return &provider{dir: dir, done: ch}
+	return &provider{stub: stub, dir: dir, done: ch}
 }
 
 func (p *provider) Driver() string {
@@ -45,44 +55,52 @@ func (p *provider) Close() error {
 	return nil
 }
 
-type Consumer struct {
-	dir       string
-	endpoints []govern.Endpoint
+type consumer struct {
+	stub  *stub
+	dir   string
+	token string
 }
 
-func NewConsumer(dir string, endpoints []govern.Endpoint, refresh govern.RefreshEndpointsFunc) *Consumer {
+func newConsumer(stub *stub, dir string, refresh govern.RefreshEndpointsFunc) *consumer {
+	token := ""
 	if refresh != nil {
-		refresh(endpoints)
+		token = fmt.Sprint(rand.Int())
+		stub.AddSubscriber(token, refresh)
 	}
-	return &Consumer{
-		dir:       dir,
-		endpoints: endpoints,
+	return &consumer{
+		stub:  stub,
+		dir:   dir,
+		token: token,
 	}
 }
 
-func (p *Consumer) Driver() string {
+func (p *consumer) Driver() string {
 	return DriverName
 }
 
-func (p *Consumer) Directory() string {
+func (p *consumer) Directory() string {
 	return p.dir
 }
 
-func (p *Consumer) Close() error {
+func (p *consumer) Close() error {
+	if p.token != "" {
+		p.stub.RemoveSubscriber(p.token)
+	}
 	return nil
 }
 
-func (p *Consumer) GetEndpoints() []govern.Endpoint {
-	return p.endpoints
+func (p *consumer) GetEndpoints() []govern.Endpoint {
+	return p.stub.GetEndpoints()
 }
 
 type Driver struct {
 	namespace string
-	endpoints []govern.Endpoint
+	mu        sync.Mutex
+	stubs     map[string]*stub
 }
 
-func NewDriver(namespace string, endpoints []govern.Endpoint) *Driver {
-	return &Driver{namespace: namespace, endpoints: endpoints}
+func NewDriver(namespace string) *Driver {
+	return &Driver{namespace: namespace, stubs: make(map[string]*stub)}
 }
 
 func (p *Driver) Name() string {
@@ -94,11 +112,26 @@ func (p *Driver) Namespace() string {
 }
 
 func (p *Driver) NewProvider(service string, interval time.Duration, f govern.GetEndpointFunc) govern.Provider {
-	return newProvider(p.dir(service), interval, f)
+	p.mu.Lock()
+	stub, ok := p.stubs[service]
+	if !ok {
+		stub = newStub()
+		p.stubs[service] = stub
+	}
+	p.mu.Unlock()
+	return newProvider(stub, p.dir(service), interval, f)
 }
 
 func (p *Driver) NewConsumer(service string, endpoint govern.Endpoint, f govern.RefreshEndpointsFunc) govern.Consumer {
-	return NewConsumer(p.dir(service), p.endpoints, f)
+	p.mu.Lock()
+	stub, ok := p.stubs[service]
+	if !ok {
+		stub = newStub()
+		p.stubs[service] = stub
+	}
+	p.mu.Unlock()
+
+	return newConsumer(stub, p.dir(service), f)
 }
 
 func (p *Driver) Close() error {
@@ -114,11 +147,9 @@ type Config struct {
 }
 
 func Open(namespace string, config interface{}) (govern.Driver, error) {
-	c := config.(Config)
-	return NewDriver(namespace, c.Endpoints), nil
+	return NewDriver(namespace), nil
 }
 
 func init() {
 	govern.Register(DriverName, Open)
 }
-*/
