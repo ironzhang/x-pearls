@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/coreos/etcd/client"
 	"github.com/ironzhang/x-pearls/govern/testutil"
+	"github.com/ironzhang/x-pearls/govern/testutil/etcdv2util"
 )
 
 func TestParseName(t *testing.T) {
@@ -46,20 +46,8 @@ func TestParseName(t *testing.T) {
 	}
 }
 
-func NewEtcdClient(addrs []string) (client.Client, error) {
-	return client.New(client.Config{Endpoints: addrs})
-}
-
-func NewTestKeysAPI() client.KeysAPI {
-	c, err := NewEtcdClient([]string{"http://127.0.0.1:2379"})
-	if err != nil {
-		panic(err)
-	}
-	return client.NewKeysAPI(c)
-}
-
 func TestAPISet(t *testing.T) {
-	api := NewAPI(NewTestKeysAPI(), &testutil.Endpoint{})
+	api := NewAPI(etcdv2util.NewTestKeysAPI(), &testutil.Endpoint{})
 
 	endpoints := []testutil.Endpoint{
 		{Name: "node1"},
@@ -87,7 +75,7 @@ func TestAPISet(t *testing.T) {
 }
 
 func TestAPIDel(t *testing.T) {
-	api := NewAPI(NewTestKeysAPI(), &testutil.Endpoint{})
+	api := NewAPI(etcdv2util.NewTestKeysAPI(), &testutil.Endpoint{})
 
 	endpoints := []testutil.Endpoint{
 		{Name: "node1"},
@@ -124,7 +112,7 @@ func TestAPIDel(t *testing.T) {
 }
 
 func TestWatcher(t *testing.T) {
-	api := NewAPI(NewTestKeysAPI(), &testutil.Endpoint{})
+	api := NewAPI(etcdv2util.NewTestKeysAPI(), &testutil.Endpoint{})
 
 	events := []Event{
 		{Action: "set", Name: "node1", Endpoint: &testutil.Endpoint{Name: "node1"}},

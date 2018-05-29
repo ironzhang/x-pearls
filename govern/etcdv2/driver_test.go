@@ -4,43 +4,24 @@ import (
 	"testing"
 	"time"
 
+	"github.com/coreos/etcd/client"
 	"github.com/ironzhang/x-pearls/govern"
+	"github.com/ironzhang/x-pearls/govern/testutil"
 )
+
+func OpenTestDriver(namespace string) govern.Driver {
+	driver, err := Open(namespace, client.Config{Endpoints: []string{"http://127.0.0.1:2379"}})
+	if err != nil {
+		panic(err)
+	}
+	return driver
+}
 
 func TestDriver(t *testing.T) {
 	defer time.Sleep(500 * time.Millisecond)
 
-	ns := "TestDriver"
-	sv := "TestService"
-	rt := &RefreshTable{}
-
-	d := OpenTestDriver(ns)
+	d := OpenTestDriver("TestDriver")
 	defer d.Close()
-	c := d.NewConsumer(sv, &Endpoint{}, rt.Refresh)
-	defer c.Close()
 
-	endpoints := []*Endpoint{
-		&Endpoint{Name: "node0", Addr: "localhost:2000"},
-		&Endpoint{Name: "node1", Addr: "localhost:2001"},
-		&Endpoint{Name: "node2", Addr: "localhost:2002"},
-		&Endpoint{Name: "node3", Addr: "localhost:2003"},
-	}
-	for _, ep := range endpoints {
-		x := ep
-		p := d.NewProvider(sv, 10*time.Second, func() govern.Endpoint { return x })
-		defer p.Close()
-	}
-
-	eps, err := RefreshTableGetEndpoints(rt, len(endpoints))
-	if err != nil {
-		t.Fatalf("RefreshTableGetEndpoints: %v", err)
-	}
-
-	for i, ep := range endpoints {
-		if got, want := &eps[i], ep; *got != *want {
-			t.Fatalf("%d: endpoint: got %v, want %v", i, got, want)
-		} else {
-			t.Logf("%d: endpoint: got %v", i, got)
-		}
-	}
+	testutil.TestDriver(t, d)
 }
