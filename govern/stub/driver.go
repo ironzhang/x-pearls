@@ -130,7 +130,6 @@ func (p *Driver) NewConsumer(service string, endpoint govern.Endpoint, f govern.
 		p.stubs[service] = stub
 	}
 	p.mu.Unlock()
-
 	return newConsumer(stub, p.dir(service), f)
 }
 
