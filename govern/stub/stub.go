@@ -7,63 +7,56 @@ import (
 )
 
 type stub struct {
-	endpoints govern.Endpoints
-	emu       sync.RWMutex
-	eps       []govern.Endpoint
-	smu       sync.Mutex
-	subs      map[string]govern.RefreshEndpointsFunc
+	mu          sync.Mutex
+	list        []govern.Endpoint
+	endpoints   govern.Endpoints
+	subscribers map[string]govern.RefreshEndpointsFunc
 }
 
 func newStub() *stub {
 	return &stub{
-		endpoints: make(govern.Endpoints),
-		subs:      make(map[string]govern.RefreshEndpointsFunc),
+		endpoints:   make(govern.Endpoints),
+		subscribers: make(map[string]govern.RefreshEndpointsFunc),
 	}
 }
 
 func (p *stub) AddEndpoint(ep govern.Endpoint) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	if p.endpoints.Add(ep) {
 		p.doRefresh(p.endpoints.SortList())
 	}
 }
 
 func (p *stub) RemoveEndpoint(node string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	if p.endpoints.Remove(node) {
 		p.doRefresh(p.endpoints.SortList())
 	}
 }
 
 func (p *stub) AddSubscriber(token string, f govern.RefreshEndpointsFunc) {
-	p.smu.Lock()
-	p.subs[token] = f
-	p.smu.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.subscribers[token] = f
 }
 
 func (p *stub) RemoveSubscriber(token string) {
-	p.smu.Lock()
-	delete(p.subs, token)
-	p.smu.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	delete(p.subscribers, token)
 }
 
 func (p *stub) GetEndpoints() []govern.Endpoint {
-	p.emu.RLock()
-	defer p.emu.RUnlock()
-	return p.eps
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.list
 }
 
 func (p *stub) doRefresh(eps []govern.Endpoint) {
-	p.emu.Lock()
-	p.eps = eps
-	p.emu.Unlock()
-
-	p.smu.Lock()
-	subs := make([]govern.RefreshEndpointsFunc, 0, len(p.subs))
-	for _, s := range p.subs {
-		subs = append(subs, s)
-	}
-	p.smu.Unlock()
-
-	for _, f := range subs {
+	p.list = eps
+	for _, f := range p.subscribers {
 		f(eps)
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/ironzhang/x-pearls/govern"
 )
 
-const DriverName = "memory"
+const DriverName = "stub"
 
 type provider struct {
 	stub *stub
