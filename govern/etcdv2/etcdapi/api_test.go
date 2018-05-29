@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/client"
+	"github.com/ironzhang/x-pearls/govern/testutil"
 )
 
 func TestParseName(t *testing.T) {
@@ -45,23 +46,6 @@ func TestParseName(t *testing.T) {
 	}
 }
 
-type Endpoint struct {
-	Name string
-}
-
-func (p *Endpoint) Node() string {
-	return p.Name
-}
-
-func (p *Endpoint) String() string {
-	return p.Name
-}
-
-func (p *Endpoint) Equal(a interface{}) bool {
-	ep := a.(*Endpoint)
-	return *p == *ep
-}
-
 func NewEtcdClient(addrs []string) (client.Client, error) {
 	return client.New(client.Config{Endpoints: addrs})
 }
@@ -75,9 +59,9 @@ func NewTestKeysAPI() client.KeysAPI {
 }
 
 func TestAPISet(t *testing.T) {
-	api := NewAPI(NewTestKeysAPI(), &Endpoint{})
+	api := NewAPI(NewTestKeysAPI(), &testutil.Endpoint{})
 
-	endpoints := []Endpoint{
+	endpoints := []testutil.Endpoint{
 		{Name: "node1"},
 		{Name: "node2"},
 		{Name: "node3"},
@@ -95,7 +79,7 @@ func TestAPISet(t *testing.T) {
 	sort.Slice(eps, func(i, j int) bool { return eps[i].Node() < eps[j].Node() })
 
 	for i, ep := range eps {
-		if got, want := *ep.(*Endpoint), endpoints[i]; got != want {
+		if got, want := *ep.(*testutil.Endpoint), endpoints[i]; got != want {
 			t.Fatalf("%d: endpoint: got %v, want %v", i, got, want)
 		}
 	}
@@ -103,9 +87,9 @@ func TestAPISet(t *testing.T) {
 }
 
 func TestAPIDel(t *testing.T) {
-	api := NewAPI(NewTestKeysAPI(), &Endpoint{})
+	api := NewAPI(NewTestKeysAPI(), &testutil.Endpoint{})
 
-	endpoints := []Endpoint{
+	endpoints := []testutil.Endpoint{
 		{Name: "node1"},
 		{Name: "node2"},
 		{Name: "node3"},
@@ -140,15 +124,15 @@ func TestAPIDel(t *testing.T) {
 }
 
 func TestWatcher(t *testing.T) {
-	api := NewAPI(NewTestKeysAPI(), &Endpoint{})
+	api := NewAPI(NewTestKeysAPI(), &testutil.Endpoint{})
 
 	events := []Event{
-		{Action: "set", Name: "node1", Endpoint: &Endpoint{"node1"}},
-		{Action: "set", Name: "node2", Endpoint: &Endpoint{"node2"}},
-		{Action: "set", Name: "node1", Endpoint: &Endpoint{"node1"}},
+		{Action: "set", Name: "node1", Endpoint: &testutil.Endpoint{Name: "node1"}},
+		{Action: "set", Name: "node2", Endpoint: &testutil.Endpoint{Name: "node2"}},
+		{Action: "set", Name: "node1", Endpoint: &testutil.Endpoint{Name: "node1"}},
 		{Action: "delete", Name: "node1", Endpoint: nil},
 		{Action: "delete", Name: "node2", Endpoint: nil},
-		{Action: "set", Name: "node2", Endpoint: &Endpoint{"node2"}},
+		{Action: "set", Name: "node2", Endpoint: &testutil.Endpoint{Name: "node2"}},
 	}
 
 	go func() {
