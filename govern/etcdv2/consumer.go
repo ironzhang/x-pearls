@@ -2,7 +2,6 @@ package etcdv2
 
 import (
 	"context"
-	"sort"
 	"sync"
 	"time"
 
@@ -13,14 +12,14 @@ import (
 )
 
 type consumer struct {
-	api       etcdapi.API
-	dir       string
-	refresh   govern.RefreshEndpointsFunc
-	endpoints map[string]govern.Endpoint
-	done      chan struct{}
+	api     etcdapi.API
+	dir     string
+	refresh govern.RefreshEndpointsFunc
 
-	mu   sync.RWMutex
-	list []govern.Endpoint
+	endpoints govern.Endpoints
+	done      chan struct{}
+	mu        sync.RWMutex
+	list      []govern.Endpoint
 }
 
 func newConsumer(api client.KeysAPI, dir string, endpoint govern.Endpoint, refresh govern.RefreshEndpointsFunc) *consumer {
@@ -31,7 +30,7 @@ func (c *consumer) init(api client.KeysAPI, dir string, endpoint govern.Endpoint
 	c.api.Init(api, endpoint)
 	c.dir = dir
 	c.refresh = refresh
-	c.endpoints = make(map[string]govern.Endpoint)
+	c.endpoints = make(govern.Endpoints)
 	c.done = make(chan struct{})
 	go c.watching(c.done)
 	return c
@@ -129,44 +128,30 @@ func (c *consumer) watchNext(ctx context.Context, w *etcdapi.Watcher) (etcdapi.E
 func (c *consumer) setup(eps []govern.Endpoint) {
 	zlog.Debugw("setup", "dir", c.dir, "endpoints", eps)
 	for _, ep := range eps {
-		c.endpoints[ep.Node()] = ep
+		c.endpoints.Add(ep)
 	}
-	c.doRefresh()
+	c.doRefresh(c.endpoints.SortList())
 }
 
 func (c *consumer) update(event etcdapi.Event) {
 	zlog.Debugw("update", "dir", c.dir, "event", event)
 	switch event.Action {
 	case "set", "update":
-		if ep, ok := c.endpoints[event.Name]; !ok || !ep.Equal(event.Endpoint) {
-			c.endpoints[event.Name] = event.Endpoint
-			c.doRefresh()
+		if c.endpoints.Add(event.Endpoint) {
+			c.doRefresh(c.endpoints.SortList())
 		}
 	case "delete", "expire":
-		if _, ok := c.endpoints[event.Name]; ok {
-			delete(c.endpoints, event.Name)
-			c.doRefresh()
+		if c.endpoints.Remove(event.Name) {
+			c.doRefresh(c.endpoints.SortList())
 		}
 	}
 }
 
-func (c *consumer) doRefresh() {
-	eps := sortEndpoints(c.endpoints)
+func (c *consumer) doRefresh(eps []govern.Endpoint) {
 	c.mu.Lock()
 	c.list = eps
 	c.mu.Unlock()
 	if c.refresh != nil {
 		c.refresh(eps)
 	}
-}
-
-func sortEndpoints(m map[string]govern.Endpoint) []govern.Endpoint {
-	s := make([]govern.Endpoint, 0, len(m))
-	for _, p := range m {
-		s = append(s, p)
-	}
-	sort.Slice(s, func(i, j int) bool {
-		return s[i].Node() < s[j].Node()
-	})
-	return s
 }
