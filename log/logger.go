@@ -47,158 +47,158 @@ func (l Level) String() string {
 	}
 }
 
-type ZLogger struct {
+type StdLogger struct {
 	logger    *log.Logger
 	level     Level
 	calldepth int
 }
 
-func NewZLogger(logger *log.Logger, level Level, calldepth int) *ZLogger {
-	return &ZLogger{
+func NewStdLogger(logger *log.Logger, level Level, calldepth int) *StdLogger {
+	return &StdLogger{
 		logger:    logger,
 		level:     level,
 		calldepth: calldepth + 2,
 	}
 }
 
-func (p *ZLogger) SetLogger(l *log.Logger) {
+func (p *StdLogger) SetLogger(l *log.Logger) {
 	p.logger = l
 }
 
-func (p *ZLogger) SetLevel(l Level) {
+func (p *StdLogger) SetLevel(l Level) {
 	p.level = l
 }
 
-func (p *ZLogger) SetCalldepth(calldepth int) {
+func (p *StdLogger) SetCalldepth(calldepth int) {
 	p.calldepth = calldepth
 }
 
-func (p *ZLogger) Debug(args ...interface{}) {
+func (p *StdLogger) Debug(args ...interface{}) {
 	if p.level <= DEBUG {
 		p.logger.Output(p.calldepth, sprint(DEBUG, args...))
 	}
 }
 
-func (p *ZLogger) Debugf(format string, args ...interface{}) {
+func (p *StdLogger) Debugf(format string, args ...interface{}) {
 	if p.level <= DEBUG {
 		p.logger.Output(p.calldepth, sprintf(DEBUG, format, args...))
 	}
 }
 
-func (p *ZLogger) Debugw(message string, kvs ...interface{}) {
+func (p *StdLogger) Debugw(message string, kvs ...interface{}) {
 	if p.level <= DEBUG {
 		p.logger.Output(p.calldepth, sprintkvs(DEBUG, message, kvs...))
 	}
 }
 
-func (p *ZLogger) Trace(args ...interface{}) {
+func (p *StdLogger) Trace(args ...interface{}) {
 	if p.level <= TRACE {
 		p.logger.Output(p.calldepth, sprint(TRACE, args...))
 	}
 }
 
-func (p *ZLogger) Tracef(format string, args ...interface{}) {
+func (p *StdLogger) Tracef(format string, args ...interface{}) {
 	if p.level <= TRACE {
 		p.logger.Output(p.calldepth, sprintf(TRACE, format, args...))
 	}
 }
 
-func (p *ZLogger) Tracew(message string, kvs ...interface{}) {
+func (p *StdLogger) Tracew(message string, kvs ...interface{}) {
 	if p.level <= TRACE {
 		p.logger.Output(p.calldepth, sprintkvs(TRACE, message, kvs...))
 	}
 }
 
-func (p *ZLogger) Info(args ...interface{}) {
+func (p *StdLogger) Info(args ...interface{}) {
 	if p.level <= INFO {
 		p.logger.Output(p.calldepth, sprint(INFO, args...))
 	}
 }
 
-func (p *ZLogger) Infof(format string, args ...interface{}) {
+func (p *StdLogger) Infof(format string, args ...interface{}) {
 	if p.level <= INFO {
 		p.logger.Output(p.calldepth, sprintf(INFO, format, args...))
 	}
 }
 
-func (p *ZLogger) Infow(message string, kvs ...interface{}) {
+func (p *StdLogger) Infow(message string, kvs ...interface{}) {
 	if p.level <= INFO {
 		p.logger.Output(p.calldepth, sprintkvs(INFO, message, kvs...))
 	}
 }
 
-func (p *ZLogger) Warn(args ...interface{}) {
+func (p *StdLogger) Warn(args ...interface{}) {
 	if p.level <= WARN {
 		p.logger.Output(p.calldepth, sprint(WARN, args...))
 	}
 }
 
-func (p *ZLogger) Warnf(format string, args ...interface{}) {
+func (p *StdLogger) Warnf(format string, args ...interface{}) {
 	if p.level <= WARN {
 		p.logger.Output(p.calldepth, sprintf(WARN, format, args...))
 	}
 }
 
-func (p *ZLogger) Warnw(message string, kvs ...interface{}) {
+func (p *StdLogger) Warnw(message string, kvs ...interface{}) {
 	if p.level <= WARN {
 		p.logger.Output(p.calldepth, sprintkvs(WARN, message, kvs...))
 	}
 }
 
-func (p *ZLogger) Error(args ...interface{}) {
+func (p *StdLogger) Error(args ...interface{}) {
 	if p.level <= ERROR {
 		p.logger.Output(p.calldepth, sprint(ERROR, args...))
 	}
 }
 
-func (p *ZLogger) Errorf(format string, args ...interface{}) {
+func (p *StdLogger) Errorf(format string, args ...interface{}) {
 	if p.level <= ERROR {
 		p.logger.Output(p.calldepth, sprintf(ERROR, format, args...))
 	}
 }
 
-func (p *ZLogger) Errorw(message string, kvs ...interface{}) {
+func (p *StdLogger) Errorw(message string, kvs ...interface{}) {
 	if p.level <= ERROR {
 		p.logger.Output(p.calldepth, sprintkvs(ERROR, message, kvs...))
 	}
 }
 
-func (p *ZLogger) Panic(args ...interface{}) {
+func (p *StdLogger) Panic(args ...interface{}) {
 	if p.level <= PANIC {
 		p.logger.Output(p.calldepth, sprint(PANIC, args...))
 	}
 	PanicFunc(fmt.Sprint(args...))
 }
 
-func (p *ZLogger) Panicf(format string, args ...interface{}) {
+func (p *StdLogger) Panicf(format string, args ...interface{}) {
 	if p.level <= PANIC {
 		p.logger.Output(p.calldepth, sprintf(PANIC, format, args...))
 	}
 	PanicFunc(fmt.Sprintf(format, args...))
 }
 
-func (p *ZLogger) Panicw(message string, kvs ...interface{}) {
+func (p *StdLogger) Panicw(message string, kvs ...interface{}) {
 	if p.level <= PANIC {
 		p.logger.Output(p.calldepth, sprintkvs(PANIC, message, kvs...))
 	}
 	PanicFunc(messagekvs(message, kvs))
 }
 
-func (p *ZLogger) Fatal(args ...interface{}) {
+func (p *StdLogger) Fatal(args ...interface{}) {
 	if p.level <= FATAL {
 		p.logger.Output(p.calldepth, sprint(FATAL, args...))
 	}
 	ExitFunc(1)
 }
 
-func (p *ZLogger) Fatalf(format string, args ...interface{}) {
+func (p *StdLogger) Fatalf(format string, args ...interface{}) {
 	if p.level <= FATAL {
 		p.logger.Output(p.calldepth, sprintf(FATAL, format, args...))
 	}
 	ExitFunc(1)
 }
 
-func (p *ZLogger) Fatalw(message string, kvs ...interface{}) {
+func (p *StdLogger) Fatalw(message string, kvs ...interface{}) {
 	if p.level <= FATAL {
 		p.logger.Output(p.calldepth, sprintkvs(FATAL, message, kvs...))
 	}

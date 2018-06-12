@@ -35,11 +35,11 @@ type Logger interface {
 	Fatalw(message string, kvs ...interface{})
 }
 
-var Default *ZLogger
+var Default *StdLogger
 var logging Logger
 
 func init() {
-	Default = NewZLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile), INFO, 1)
+	Default = NewStdLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile), INFO, 1)
 	logging = Default
 }
 

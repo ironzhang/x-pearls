@@ -84,7 +84,7 @@ func TestSprintf(t *testing.T) {
 	}
 }
 
-func PrintTestLogs(msg string, l *ZLogger) {
+func PrintTestLogs(msg string, l *StdLogger) {
 	fmt.Println(msg)
 
 	l.Debug("debug", 1, "2", 3.0)
@@ -120,7 +120,7 @@ func TestLogger(t *testing.T) {
 	var enable bool
 	enable = true
 	if enable {
-		l := NewZLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile), DEBUG, 0)
+		l := NewStdLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile), DEBUG, 0)
 
 		l.SetLevel(DEBUG)
 		PrintTestLogs("debug level", l)
