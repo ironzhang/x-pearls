@@ -7,7 +7,7 @@ import (
 	"github.com/coreos/etcd/client"
 	"github.com/ironzhang/x-pearls/govern"
 	"github.com/ironzhang/x-pearls/govern/etcdv2/etcdapi"
-	"github.com/ironzhang/x-pearls/zlog"
+	"github.com/ironzhang/x-pearls/log"
 )
 
 type provider struct {
@@ -70,29 +70,29 @@ func (p *provider) pinging(done <-chan struct{}) {
 func (p *provider) register() error {
 	ep := p.endpoint()
 	if err := p.api.Set(context.Background(), p.dir, ep, p.ttl); err != nil {
-		zlog.Warnw("register endpoint", "dir", p.dir, "endpoint", ep, "error", err)
+		log.Warnw("register endpoint", "dir", p.dir, "endpoint", ep, "error", err)
 		return err
 	}
-	zlog.Debugw("register endpoint", "dir", p.dir, "endpoint", ep)
+	log.Debugw("register endpoint", "dir", p.dir, "endpoint", ep)
 	return nil
 }
 
 func (p *provider) unregister() error {
 	ep := p.endpoint()
 	if err := p.api.Del(context.Background(), p.dir, ep.Node()); err != nil {
-		zlog.Warnw("unregister endpoint", "dir", p.dir, "endpoint", ep, "error", err)
+		log.Warnw("unregister endpoint", "dir", p.dir, "endpoint", ep, "error", err)
 		return err
 	}
-	zlog.Debugw("unregister endpoint", "dir", p.dir, "endpoint", ep)
+	log.Debugw("unregister endpoint", "dir", p.dir, "endpoint", ep)
 	return nil
 }
 
 func (p *provider) update() error {
 	ep := p.endpoint()
 	if err := p.api.Set(context.Background(), p.dir, ep, p.ttl); err != nil {
-		zlog.Warnw("update endpoint", "dir", p.dir, "endpoint", ep, "error", err)
+		log.Warnw("update endpoint", "dir", p.dir, "endpoint", ep, "error", err)
 		return err
 	}
-	zlog.Debugw("update endpoint", "dir", p.dir, "endpoint", ep)
+	log.Debugw("update endpoint", "dir", p.dir, "endpoint", ep)
 	return nil
 }

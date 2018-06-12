@@ -10,7 +10,7 @@ import (
 	"github.com/ironzhang/x-pearls/examples/govern/endpoint"
 	"github.com/ironzhang/x-pearls/govern"
 	"github.com/ironzhang/x-pearls/govern/etcdv2"
-	"github.com/ironzhang/x-pearls/zlog"
+	"github.com/ironzhang/x-pearls/log"
 )
 
 type Options struct {
@@ -18,18 +18,18 @@ type Options struct {
 }
 
 func (o *Options) Parse() {
-	flag.IntVar(&o.Level, "level", int(zlog.INFO), "log level")
+	flag.IntVar(&o.Level, "level", int(log.INFO), "log level")
 	flag.Parse()
 }
 
 func main() {
 	var opts Options
 	opts.Parse()
-	zlog.Default.SetLevel(zlog.Level(opts.Level))
+	log.Default.SetLevel(log.Level(opts.Level))
 
 	d, err := govern.Open(etcdv2.DriverName, "test", client.Config{Endpoints: []string{"http://127.0.0.1:2379"}})
 	if err != nil {
-		zlog.Fatalw("open", "error", err)
+		log.Fatalw("open", "error", err)
 	}
 	defer d.Close()
 	defer time.Sleep(time.Second)
@@ -43,5 +43,5 @@ func main() {
 }
 
 func refresh(endpoints []govern.Endpoint) {
-	zlog.Infow("refresh", "endpoints", endpoints)
+	log.Infow("refresh", "endpoints", endpoints)
 }

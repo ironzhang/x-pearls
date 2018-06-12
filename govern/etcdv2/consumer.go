@@ -8,7 +8,7 @@ import (
 	"github.com/coreos/etcd/client"
 	"github.com/ironzhang/x-pearls/govern"
 	"github.com/ironzhang/x-pearls/govern/etcdv2/etcdapi"
-	"github.com/ironzhang/x-pearls/zlog"
+	"github.com/ironzhang/x-pearls/log"
 )
 
 type consumer struct {
@@ -56,7 +56,7 @@ func (c *consumer) GetEndpoints() []govern.Endpoint {
 }
 
 func (c *consumer) watching(done <-chan struct{}) {
-	zlog.Infow("start watch", "dir", c.dir)
+	log.Infow("start watch", "dir", c.dir)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
@@ -66,7 +66,7 @@ func (c *consumer) watching(done <-chan struct{}) {
 
 	eps, index, err := c.listEndpoints(ctx)
 	if err != nil {
-		zlog.Infow("stop watch", "dir", c.dir)
+		log.Infow("stop watch", "dir", c.dir)
 		return
 	}
 	c.setup(eps)
@@ -80,7 +80,7 @@ func (c *consumer) watching(done <-chan struct{}) {
 		c.update(event)
 	}
 
-	zlog.Infow("stop watch", "dir", c.dir)
+	log.Infow("stop watch", "dir", c.dir)
 }
 
 func (c *consumer) listEndpoints(ctx context.Context) ([]govern.Endpoint, uint64, error) {
@@ -96,7 +96,7 @@ func (c *consumer) listEndpoints(ctx context.Context) ([]govern.Endpoint, uint64
 		} else if err == context.Canceled {
 			return nil, 0, err
 		} else {
-			zlog.Warnw("list endpoints", "dir", c.dir, "delay", delay, "error", err)
+			log.Warnw("list endpoints", "dir", c.dir, "delay", delay, "error", err)
 			time.Sleep(delay)
 			if delay *= 2; delay > max {
 				delay = max
@@ -116,7 +116,7 @@ func (c *consumer) watchNext(ctx context.Context, w *etcdapi.Watcher) (etcdapi.E
 		} else if err == context.Canceled {
 			return event, err
 		} else {
-			zlog.Warnw("watch next", "dir", c.dir, "delay", delay, "error", err)
+			log.Warnw("watch next", "dir", c.dir, "delay", delay, "error", err)
 			time.Sleep(delay)
 			if delay *= 2; delay > max {
 				delay = max
@@ -126,7 +126,7 @@ func (c *consumer) watchNext(ctx context.Context, w *etcdapi.Watcher) (etcdapi.E
 }
 
 func (c *consumer) setup(eps []govern.Endpoint) {
-	zlog.Debugw("setup", "dir", c.dir, "endpoints", eps)
+	log.Debugw("setup", "dir", c.dir, "endpoints", eps)
 	for _, ep := range eps {
 		c.endpoints.Add(ep)
 	}
@@ -134,7 +134,7 @@ func (c *consumer) setup(eps []govern.Endpoint) {
 }
 
 func (c *consumer) update(event etcdapi.Event) {
-	zlog.Debugw("update", "dir", c.dir, "event", event)
+	log.Debugw("update", "dir", c.dir, "event", event)
 	switch event.Action {
 	case "set", "update":
 		if c.endpoints.Add(event.Endpoint) {

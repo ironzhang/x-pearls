@@ -3,8 +3,7 @@ package zaplog
 import (
 	"testing"
 
-	"github.com/ironzhang/x-pearls/zlog"
-
+	"github.com/ironzhang/x-pearls/log"
 	"go.uber.org/zap"
 )
 
@@ -56,13 +55,13 @@ func TestLogger(t *testing.T) {
 
 func TestZLog(t *testing.T) {
 	l := NewLogger(NewTestZapLogger(), 1)
-	zlog.SetLogger(l)
+	log.SetLogger(l)
 
-	zlog.Debug("debug")
-	zlog.Trace("trace")
-	zlog.Info("info")
-	zlog.Warn("warn")
-	zlog.Error("error")
-	//zlog.Panic("panic")
-	//zlog.Fatal("fatal")
+	log.Debug("debug")
+	log.Trace("trace")
+	log.Info("info")
+	log.Warn("warn")
+	log.Error("error")
+	//log.Panic("panic")
+	//log.Fatal("fatal")
 }
