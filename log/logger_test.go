@@ -1,6 +1,7 @@
 package log
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -14,6 +15,62 @@ func init() {
 
 	ExitFunc = func(code int) {
 		fmt.Printf("exit: %d\n", code)
+	}
+}
+
+type T1 struct {
+	A int
+	B string
+}
+
+type T2 struct {
+	a int
+	b string
+}
+
+func (t T2) String() string {
+	data, _ := json.Marshal(T1{A: t.a, B: t.b})
+	return string(data)
+}
+
+type T3 struct {
+	a int
+	b string
+}
+
+func (t T3) Error() string {
+	data, _ := json.Marshal(T1{A: t.a, B: t.b})
+	return string(data)
+}
+
+func TestMarshal(t *testing.T) {
+
+	tests := []struct {
+		a interface{}
+		s string
+	}{
+		{
+			a: 1,
+			s: "1",
+		},
+		{
+			a: T1{A: 1, B: "B"},
+			s: `{"A":1,"B":"B"}`,
+		},
+		{
+			a: T2{a: 1, b: "B"},
+			s: `{"A":1,"B":"B"}`,
+		},
+		{
+			a: T3{a: 1, b: "B"},
+			s: `{"A":1,"B":"B"}`,
+		},
+	}
+
+	for i, tt := range tests {
+		if got, want := marshal(tt.a), tt.s; got != want {
+			t.Fatalf("%d: got %v, want %v", i, got, want)
+		}
 	}
 }
 
