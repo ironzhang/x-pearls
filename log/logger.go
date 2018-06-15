@@ -247,9 +247,9 @@ func fmtkvs(kvs []interface{}) string {
 func marshal(a interface{}) string {
 	switch v := a.(type) {
 	case error:
-		return v.Error()
+		return fmt.Sprintf("%q", v.Error())
 	case fmt.Stringer:
-		return v.String()
+		return fmt.Sprintf("%q", v.String())
 	default:
 		data, _ := json.Marshal(a)
 		return string(data)

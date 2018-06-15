@@ -1,7 +1,6 @@
 package log
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -29,8 +28,7 @@ type T2 struct {
 }
 
 func (t T2) String() string {
-	data, _ := json.Marshal(T1{A: t.a, B: t.b})
-	return string(data)
+	return fmt.Sprintf("{A:%d, B:%s}", t.a, t.b)
 }
 
 type T3 struct {
@@ -39,12 +37,10 @@ type T3 struct {
 }
 
 func (t T3) Error() string {
-	data, _ := json.Marshal(T1{A: t.a, B: t.b})
-	return string(data)
+	return fmt.Sprintf("{A:%d, B:%s}", t.a, t.b)
 }
 
 func TestMarshal(t *testing.T) {
-
 	tests := []struct {
 		a interface{}
 		s string
@@ -59,11 +55,11 @@ func TestMarshal(t *testing.T) {
 		},
 		{
 			a: T2{a: 1, b: "B"},
-			s: `{"A":1,"B":"B"}`,
+			s: `"{A:1, B:B}"`,
 		},
 		{
 			a: T3{a: 1, b: "B"},
-			s: `{"A":1,"B":"B"}`,
+			s: `"{A:1, B:B}"`,
 		},
 	}
 
