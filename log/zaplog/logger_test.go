@@ -7,18 +7,23 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewTestZapLogger() *zap.Logger {
+func NewTestZapLogger() (*zap.Logger, zap.AtomicLevel) {
 	cfg := zap.NewProductionConfig()
 	cfg.Level.SetLevel(zap.DebugLevel)
 	l, err := cfg.Build(zap.AddStacktrace(zap.NewAtomicLevelAt(zap.DPanicLevel)))
 	if err != nil {
 		panic(err)
 	}
-	return l
+	return l, cfg.Level
+}
+
+func NewTestLogger(calldepth int) *Logger {
+	logger, level := NewTestZapLogger()
+	return NewLogger(logger, level, calldepth)
 }
 
 func TestLogger(t *testing.T) {
-	l := NewLogger(NewTestZapLogger(), 0)
+	l := NewTestLogger(0)
 	l.Debug("debug")
 	l.Debugf("debug")
 	l.Debugw("debug")
@@ -54,7 +59,7 @@ func TestLogger(t *testing.T) {
 }
 
 func TestZLog(t *testing.T) {
-	l := NewLogger(NewTestZapLogger(), 1)
+	l := NewTestLogger(1)
 	log.SetLogger(l)
 
 	log.Debug("debug")

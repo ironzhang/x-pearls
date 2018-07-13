@@ -1,13 +1,48 @@
 package zaplog
 
-import "go.uber.org/zap"
+import (
+	"fmt"
+	"strings"
+
+	"go.uber.org/zap"
+)
 
 type Logger struct {
+	level  zap.AtomicLevel
 	logger *zap.SugaredLogger
 }
 
-func NewLogger(logger *zap.Logger, calldepth int) *Logger {
-	return &Logger{logger: logger.WithOptions(zap.AddCallerSkip(calldepth + 1)).Sugar()}
+func NewLogger(logger *zap.Logger, level zap.AtomicLevel, calldepth int) *Logger {
+	return &Logger{
+		level:  level,
+		logger: logger.WithOptions(zap.AddCallerSkip(calldepth + 1)).Sugar(),
+	}
+}
+
+func (p *Logger) GetLogLevel() string {
+	return p.level.String()
+}
+
+func (p *Logger) SetLogLevel(level string) error {
+	switch strings.ToLower(level) {
+	case zap.DebugLevel.String():
+		p.level.SetLevel(zap.DebugLevel)
+	case zap.InfoLevel.String():
+		p.level.SetLevel(zap.InfoLevel)
+	case zap.WarnLevel.String():
+		p.level.SetLevel(zap.WarnLevel)
+	case zap.ErrorLevel.String():
+		p.level.SetLevel(zap.ErrorLevel)
+	case zap.DPanicLevel.String():
+		p.level.SetLevel(zap.DPanicLevel)
+	case zap.PanicLevel.String():
+		p.level.SetLevel(zap.PanicLevel)
+	case zap.FatalLevel.String():
+		p.level.SetLevel(zap.FatalLevel)
+	default:
+		return fmt.Errorf("%q level is unknown", level)
+	}
+	return nil
 }
 
 func (p *Logger) Debug(args ...interface{}) {

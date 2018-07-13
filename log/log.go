@@ -6,6 +6,9 @@ import (
 )
 
 type Logger interface {
+	GetLogLevel() string
+	SetLogLevel(level string) error
+
 	Debug(args ...interface{})
 	Debugf(format string, args ...interface{})
 	Debugw(message string, kvs ...interface{})
@@ -49,6 +52,14 @@ func SetLogger(l Logger) {
 	} else {
 		logging = l
 	}
+}
+
+func GetLevel() string {
+	return logging.GetLogLevel()
+}
+
+func SetLevel(level string) error {
+	return logging.SetLogLevel(level)
 }
 
 func Debug(args ...interface{}) {

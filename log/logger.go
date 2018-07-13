@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 var ExitFunc = os.Exit
@@ -65,12 +66,42 @@ func (p *StdLogger) SetLogger(l *log.Logger) {
 	p.logger = l
 }
 
+func (p *StdLogger) GetLevel() Level {
+	return p.level
+}
+
 func (p *StdLogger) SetLevel(l Level) {
 	p.level = l
 }
 
 func (p *StdLogger) SetCalldepth(calldepth int) {
 	p.calldepth = calldepth
+}
+
+func (p *StdLogger) GetLogLevel() string {
+	return p.GetLevel().String()
+}
+
+func (p *StdLogger) SetLogLevel(level string) error {
+	switch strings.ToUpper(level) {
+	case DEBUG.String():
+		p.SetLevel(DEBUG)
+	case TRACE.String():
+		p.SetLevel(TRACE)
+	case INFO.String():
+		p.SetLevel(INFO)
+	case WARN.String():
+		p.SetLevel(WARN)
+	case ERROR.String():
+		p.SetLevel(ERROR)
+	case PANIC.String():
+		p.SetLevel(PANIC)
+	case FATAL.String():
+		p.SetLevel(FATAL)
+	default:
+		return fmt.Errorf("%q level is unknown", level)
+	}
+	return nil
 }
 
 func (p *StdLogger) Debug(args ...interface{}) {
